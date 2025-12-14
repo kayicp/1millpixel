@@ -78,6 +78,33 @@ shared (install) persistent actor class Canister(
     case _ ();
   };
 
+  public shared query func icrc3_get_blocks(args : [ICRC3T.GetBlocksArg]) : async ICRC3T.GetBlocksResult {
+    {
+      log_length = 0;
+      blocks = [];
+      archived_blocks = [];
+    };
+  };
+  public shared query func canvas_pixels_of(coords : [{ x : Nat; y : Nat }]) : async [Nat8] {
+    [];
+  };
+  public shared query func canvas_credits_of(args : [ICRC1T.Account]) : async [Nat] {
+    let max_take = Nat.min(args.size(), env.max_query_batch_size);
+    let buff = Buffer.Buffer<Nat>(max_take);
+    label finding for (arg in args.vals()) {
+      let user = getUser(arg.owner);
+      let sub = Subaccount.get(arg.subaccount);
+      let credit = L.getCredit(user, sub);
+      buff.add(credit);
+      if (buff.size() >= max_take) break finding;
+    };
+    Buffer.toArray(buff);
+  };
+  public shared query func canvas_linker() : async Principal = async Principal.fromText(env.linker);
+  public shared query func canvas_width() : async Nat = async env.canvas.w;
+  public shared query func canvas_height() : async Nat = async env.canvas.h;
+  public shared query func canvas_credit_plans() : async [T.Plan] = async env.plans;
+
   var users = RBTree.empty<Principal, T.User>();
   // var expiries = RBTree.empty<Nat64, T.EUser>();
   let canvas : T.Ys = Array.tabulate<T.Xs>(env.canvas.h, func(_) : T.Xs = VarArray.tabulate<Nat8>(env.canvas.w, func(_) : Nat8 = 0));
@@ -232,8 +259,8 @@ shared (install) persistent actor class Canister(
 
     if (not Subaccount.validate(arg.subaccount)) return (Error.text("Subaccount is invalid"));
 
-    if (arg.pixel.y + 1 > env.canvas.h) return #Err(#YTooLarge { maximum_y = env.canvas.h - 1 });
-    if (arg.pixel.x + 1 > env.canvas.w) return #Err(#XTooLarge { maximum_x = env.canvas.w - 1 });
+    if (arg.y + 1 > env.canvas.h) return #Err(#YTooLarge { maximum_y = env.canvas.h - 1 });
+    if (arg.x + 1 > env.canvas.w) return #Err(#XTooLarge { maximum_x = env.canvas.w - 1 });
     switch (checkMemo(arg.memo)) {
       case (#Err err) return #Err err;
       case _ ();
@@ -251,7 +278,7 @@ shared (install) persistent actor class Canister(
     user := L.saveCredit(user, sub, credit);
     saveUser(caller, user, ());
 
-    canvas[arg.pixel.y][arg.pixel.x] := arg.pixel.color;
+    canvas[arg.y][arg.x] := arg.color;
 
     let (block_id, phash) = ArchiveL.getPhash(blocks);
     if (arg.created_at != null) commit_dedupes := RBTree.insert(commit_dedupes, L.dedupeCommit, (caller, arg), block_id);
@@ -259,7 +286,7 @@ shared (install) persistent actor class Canister(
 
     #Ok block_id;
   };
-  public shared ({ caller }) func px1m_commit(args : [T.CommitArg]) : async [Result.Type<Nat, T.CommitErr>] {
+  public shared ({ caller }) func canvas_commit(args : [T.CommitArg]) : async [Result.Type<Nat, T.CommitErr>] {
     // todo: syncTrim()
     let res_size = Nat.min(args.size(), env.max_update_batch_size);
     let res = Buffer.Buffer<Result.Type<Nat, T.CommitErr>>(res_size);
@@ -271,7 +298,7 @@ shared (install) persistent actor class Canister(
     Buffer.toArray(res);
   };
 
-  public shared ({ caller }) func px1m_topup(arg : T.TopupArg) : async Result.Type<Nat, T.TopupErr> {
+  public shared ({ caller }) func canvas_topup(arg : T.TopupArg) : async Result.Type<Nat, T.TopupErr> {
     // todo: syncTrim()
     if (not env.available) return Error.text("Unavailable");
     let user_a = { owner = caller; subaccount = arg.subaccount };
@@ -291,6 +318,10 @@ shared (install) persistent actor class Canister(
     let topup_fee = icrc1_fee * topup_credits * env.plans[arg.plan].multiplier;
     switch (arg.fee) {
       case (?defined) if (defined != topup_fee) return #Err(#BadFee { expected_fee = topup_fee });
+      case _ ();
+    };
+    switch (arg.amount) {
+      case (?defined) if (defined != topup_credits) return #Err(#BadAmount { expected_amount = topup_credits });
       case _ ();
     };
     let now = Time64.nanos();

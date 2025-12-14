@@ -1,9 +1,11 @@
 import RBTree "../util/motoko/StableCollections/RedBlackTree/RBTree";
 import Value "../util/motoko/Value";
 import Error "../util/motoko/Error";
+// import ICRC1T "../icrc1_canister/Types";
 import Linker1 "linker1";
 
 module {
+  public type Plan = { credits : Nat; multiplier : Nat };
   public type Environment = {
     available : Bool;
     memo_size : { min : Nat; max : Nat };
@@ -14,7 +16,7 @@ module {
     canvas : { h : Nat; w : Nat };
     fee_collector : Principal;
     linker : Text;
-    plans : [{ credits : Nat; multiplier : Nat }];
+    plans : [Plan];
     max_update_batch_size : Nat;
     max_query_batch_size : Nat;
     max_take_value : Nat;
@@ -37,8 +39,9 @@ module {
 
   public type CommitArg = {
     subaccount : ?Blob;
-    pixel : { x : Nat; y : Nat; color : Nat8 };
-
+    x : Nat;
+    y : Nat;
+    color : Nat8;
     memo : ?Blob;
     created_at : ?Nat64;
   };
@@ -56,6 +59,7 @@ module {
     plan : Nat;
 
     fee : ?Nat;
+    amount : ?Nat;
     memo : ?Blob;
     created_at : ?Nat64;
   };
@@ -63,6 +67,11 @@ module {
     #GenericError : Error.Type;
     #UnknownPlan;
     #BadFee : { expected_fee : Nat };
+    #BadAmount : { expected_amount : Nat };
+    #Unproxied;
+    #Locked : { amount : Nat };
+    #InsufficientBalance : { balance : Nat };
+    #InsufficientAllowance : { allowance : Nat };
     #CreatedInFuture : { time : Nat64 };
     #TooOld;
     #Duplicate : { of : Nat };

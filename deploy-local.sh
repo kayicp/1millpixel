@@ -2,7 +2,7 @@ clear
 # mops test
 
 # dfx stop
-# rm -rf .dfx
+rm -rf .dfx
 # dfx start --clean --background
 
 echo "$(dfx identity use default)"
@@ -10,15 +10,9 @@ export DEFAULT_ACCOUNT_ID=$(dfx ledger account-id)
 echo "DEFAULT_ACCOUNT_ID: " $DEFAULT_ACCOUNT_ID
 export DEFAULT_PRINCIPAL=$(dfx identity get-principal)
 
-
-# export INTERNET_ID="rdmx6-jaaaa-aaaaa-aaadq-cai"
-# export ICP_ID="ryjl3-tyaaa-aaaaa-aaaba-cai"
-# export TCYCLES_ID="um5iw-rqaaa-aaaaq-qaaba-cai"
 export LINKER_ID="gvqys-hyaaa-aaaar-qagfa-cai" #ICP
 export PX1M_ID="sv3dd-oaaaa-aaaar-qacoa-cai"
-export FEE_COLLECTOR="ckv5t-bbcan-nljbc-sbcxx-meohl-h33o2-tbyhz-4rzvb-ezsww-t3pyo-xqe"
-
-# dfx deploy internet_identity --no-wallet --specified-id $INTERNET_ID
+export FEE_COLLECTOR="fed57-2tuxu-uqdvb-chdy2-mccni-7lkxq-6nc42-xjqtf-lqsgs-22tlk-yqe"
 
 dfx deploy px1m_backend --no-wallet --specified-id $PX1M_ID --argument "(
   variant {
@@ -37,9 +31,9 @@ dfx deploy px1m_backend --no-wallet --specified-id $PX1M_ID --argument "(
         record { credits = 1_000; multiplier = 2 };
         record { credits = 5_000; multiplier = 1 };
       };
-			max_update_batch_size = 10;
-      max_query_batch_size = 100;
-      max_take_value = 100;
+			max_update_batch_size = 25;
+      max_query_batch_size = 250;
+      max_take_value = 250;
 			archive = record {
 				max_update_batch_size = 10;
 				root = null;
@@ -50,6 +44,6 @@ dfx deploy px1m_backend --no-wallet --specified-id $PX1M_ID --argument "(
 	}
 )"
 
-# dfx deploy px1m_frontend --no-wallet
+dfx deploy px1m_frontend --no-wallet
 
 
