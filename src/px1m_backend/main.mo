@@ -80,7 +80,8 @@ shared (install) persistent actor class Canister(
   };
 
   public shared query func icrc3_get_blocks(args : [ICRC3T.GetBlocksArg]) : async ICRC3T.GetBlocksResult = async ICRC3L.getBlocks(args, blocks, env.archive.root);
-  public shared query func canvas_pixels_of(coords : [{ x : Nat; y : Nat }]) : async [Nat8] {
+
+  public shared query func canvas_pixels_at(coords : [{ x : Nat; y : Nat }]) : async [Nat8] {
     let max_take = Nat.min(coords.size(), env.max_query_batch_size);
     let buff = Buffer.Buffer<Nat8>(max_take);
     label finding for (coord in coords.vals()) {
@@ -88,6 +89,13 @@ shared (install) persistent actor class Canister(
       if (buff.size() >= max_take) break finding;
     };
     Buffer.toArray(buff);
+  };
+  public shared query func canvas_pixels_from(x : Nat, y : Nat, take : ?Nat) : async [Nat8] {
+    let max_take = Nat.min(Option.get(take, env.max_take_value), env.max_take_value);
+    let buf = Buffer.Buffer<Nat8>(max_take);
+    let from = y * env.canvas.w + x;
+    for (i in Iter.range(from, from + max_take - 1)) buf.add(canvas[i]);
+    Buffer.toArray(buf);
   };
   public shared query func canvas_credits_of(args : [ICRC1T.Account]) : async [Nat] {
     let max_take = Nat.min(args.size(), env.max_query_batch_size);

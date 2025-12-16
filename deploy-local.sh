@@ -12,7 +12,8 @@ export DEFAULT_PRINCIPAL=$(dfx identity get-principal)
 
 export LINKER_ID="gvqys-hyaaa-aaaar-qagfa-cai" #ICP
 export PX1M_ID="sv3dd-oaaaa-aaaar-qacoa-cai"
-export FEE_COLLECTOR="oi6vq-zielx-3e5hy-wczon-esmft-5pinr-nyfjt-jmgxg-bzsjp-chwct-mae"
+export FEE_COLLECTOR="gsbrg-qs2ee-5gclk-cdu2j-7rzbh-mvuic-oz55w-35qjr-fdfxu-nd6iy-cae"
+
 
 dfx deploy px1m_backend --no-wallet --specified-id $PX1M_ID --argument "(
   variant {
@@ -31,9 +32,9 @@ dfx deploy px1m_backend --no-wallet --specified-id $PX1M_ID --argument "(
         record { credits = 1_000; multiplier = 2 };
         record { credits = 5_000; multiplier = 1 };
       };
-			max_update_batch_size = 25;
-      max_query_batch_size = 250;
-      max_take_value = 250;
+			max_update_batch_size = 1000;
+      max_query_batch_size = 10_000;
+      max_take_value = 10_000;
 			archive = record {
 				max_update_batch_size = 10;
 				root = null;

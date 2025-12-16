@@ -14,7 +14,7 @@ export const colors = [{
   "name": "yellow",
   "hex": "#feff00"
 }, {
-  "name": "chartreuse",
+  "name": "apple-green",
   "hex": "#7fff00"
 }, {
   "name": "green",

@@ -32,6 +32,7 @@ export default class Notif {
 	}
 
 	errorToast(title, err) {
+		console.error(title, err);
 		const message = err instanceof Error ? err.message : String(err);
 		this.showToast({ type: 'error', title, message });
 	}
@@ -56,6 +57,7 @@ export default class Notif {
 	}
 
 	errorPopup(title, err) {
+		console.error(title, err);
 		const message = err instanceof Error ? err.message : String(err);
 		this.showPopup({ type : 'error', title, message });
 	}
