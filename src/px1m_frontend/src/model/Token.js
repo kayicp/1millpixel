@@ -56,6 +56,18 @@ export default class Token {
 		return `${intPart}.${decPart}`;
   }
 
+	cleaner(n) {
+    const intPart = n / (this.power ?? 1n);
+    let decPart = (n % (this.power ?? 1n)).toString().padStart(this.decimals ?? 1, '0');
+    
+    // Remove trailing zeros from decimal part
+    decPart = decPart.replace(/0+$/, '');
+    
+    // If the decimal part becomes empty, return just the integer part
+    return decPart ? `${intPart}.${decPart}` : `${intPart}`;
+	}
+
+
   raw(n_str) {
 		let [intPart, decPart = ""] = n_str.split(".");
 	

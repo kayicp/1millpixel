@@ -23,7 +23,7 @@ export default class Draw {
     
     this.button = html`
       <button 
-        class="inline-flex items-center px-2 py-1 text-xs rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-slate-100 ring-1 ring-slate-700"
+        class="inline-flex items-center px-2 py-1 text-xs rounded-md font-medium bg-violet-800 hover:bg-violet-700 text-slate-100 ring-1 ring-slate-700"
         @click=${(e) => {
           e.preventDefault();
           if (window.location.pathname.startsWith(Draw.PATH)) return;
@@ -69,7 +69,7 @@ export default class Draw {
   }
 
   setPixel(x, y) {
-    if (this.placedPixels.size >= Canvas.MAX_BATCH) return this.notif.errorPopup(`Buffer reached ${Canvas.MAX_BATCH} pixels`, 'Please save your progress');
+    if (this.placedPixels.size >= Canvas.MAX_BATCH) return this.notif.infoPopup(`You've reached the limit of ${Canvas.MAX_BATCH} unsaved pixels`, 'Save now to apply your changes and continue drawing');
 
     const { width, height } = this.canvasb;
     if (x < 0 || x >= width || y < 0 || y >= height) return;
@@ -182,7 +182,7 @@ export default class Draw {
         <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-700">
           <div class="flex items-center gap-3">
             <span class="text-sm ${pixelCount > 0 ? 'text-emerald-400' : 'text-slate-500'}">
-              ${pixelCount} pixel${pixelCount !== 1 ? 's' : ''} placed
+              ${pixelCount}/${Canvas.MAX_BATCH} pixels unsaved
             </span>
             
             ${pixelCount > 0 ? html`

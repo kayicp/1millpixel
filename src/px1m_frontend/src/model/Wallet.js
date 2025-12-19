@@ -144,14 +144,17 @@ class Wallet {
   }
   
   btn(inner) {
-    return html`
-    <button 
-      class="inline-flex items-center px-2 py-1 text-xs rounded-md font-medium bg-slate-800 hover:bg-slate-700 text-slate-100 ring-1 ring-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      ?disabled=${this.busy}
-      @click=${(e) => this.click(e)}>
-      ${inner}
-    </button>`;
-  }
+		return html`
+			<button 
+				class="inline-flex items-center px-2 py-1 text-xs rounded-md font-medium 
+					${this.principal ? 'bg-slate-800 hover:bg-slate-700' : 'bg-green-800 hover:bg-green-700'} 
+					text-slate-100 ring-1 ring-slate-700 
+					disabled:opacity-50 disabled:cursor-not-allowed"
+				?disabled=${this.busy}
+				@click=${(e) => this.click(e)}>
+				${inner}
+			</button>`;
+	}
 }
 
 export default Wallet;

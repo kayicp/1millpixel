@@ -2,7 +2,7 @@ import RBTree "../util/motoko/StableCollections/RedBlackTree/RBTree";
 import Value "../util/motoko/Value";
 import Error "../util/motoko/Error";
 // import ICRC1T "../icrc1_canister/Types";
-import Linker1 "linker1";
+import Linker1 "icrc1pv";
 
 module {
   public type Plan = { credits : Nat; multiplier : Nat };
@@ -75,6 +75,6 @@ module {
     #CreatedInFuture : { time : Nat64 };
     #TooOld;
     #Duplicate : { of : Nat };
-    #TopupFailed : Linker1.WithdrawFromICRC1Err;
+    #TopupFailed : Linker1.TransferFromErr;
   };
 };

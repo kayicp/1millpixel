@@ -7,6 +7,7 @@ import { Principal } from '@dfinity/principal';
 import Topup from './element/Topup';
 import Draw from './element/Draw';
 import Canvas from './model/Canvas';
+import Home from './element/Home';
 
 Principal.prototype.toString = function () {
   return this.toText();
@@ -27,6 +28,7 @@ const wallet = new Wallet(notif);
 const backend = new Canvas(wallet);
 const topup = new Topup(backend);
 const draw = new Draw(backend);
+const home = new Home(backend);
 
 pubsub.on('render', _render);
 window.addEventListener('popstate', _render);
@@ -34,8 +36,8 @@ window.addEventListener('popstate', _render);
 function _render() {
   const pathn = window.location.pathname;
   let page = html`<div class="text-xs text-slate-400">404: Not Found</div>`;
-  if (pathn == "/") {
-    page = html`<div>Landing page here</div>`
+  if (pathn == Home.PATH) {
+    page = home.render();
   } else if (pathn.startsWith(Topup.PATH)) {
     page = topup.render();
   } else if (pathn.startsWith(Draw.PATH)) {

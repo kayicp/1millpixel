@@ -28,7 +28,7 @@ import Array "mo:core/Array";
 import ICRC1L "../icrc1_canister/ICRC1";
 import ICRC1T "../icrc1_canister/Types";
 import ICRC1 "../icrc1_canister/main";
-import Linker1 "linker1";
+import Linker1 "icrc1pv";
 
 shared (install) persistent actor class Canister(
   deploy : {
@@ -319,10 +319,9 @@ shared (install) persistent actor class Canister(
     };
     if (arg.plan + 1 > env.plans.size()) return Error.text("Unrecognized plan");
     let linker_canister = actor (env.linker) : Linker1.Canister;
-    let icrc1_token_p = await linker_canister.linker1_token();
+    let icrc1_token_p = await linker_canister.icrc1pv_token();
     let icrc1_canister = actor (Principal.toText(icrc1_token_p)) : ICRC1.Canister;
     let icrc1_fee = await icrc1_canister.icrc1_fee();
-    let withdraw_fee = icrc1_fee * 2;
     let topup_credits = env.plans[arg.plan].credits;
     let topup_fee = icrc1_fee * topup_credits * env.plans[arg.plan].multiplier;
     switch (arg.fee) {
@@ -342,12 +341,14 @@ shared (install) persistent actor class Canister(
       proxy = user_a;
       amount = topup_fee;
       to = { owner = env.fee_collector; subaccount = null };
-      fee = ?withdraw_fee;
+      fee = ?icrc1_fee;
       spender_subaccount = null;
       memo = null;
       created_at = null;
     };
-    let pay_id = switch (await linker_canister.linker1_withdraw_from(pay_arg)) {
+
+    let res = await linker_canister.icrc1pv_transfer_from([pay_arg]);
+    let pay_id = switch (res[0]) {
       case (#Ok ok) ok;
       case (#Err err) return #Err(#TopupFailed err);
     };

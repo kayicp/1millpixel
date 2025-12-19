@@ -32,7 +32,7 @@ export default class Linker {
 		try {
 			if (this.anon == null) this.anon = await genActor(idlFactory, this.id);
 			if (this.token == null) {
-				const token_p = await this.anon.linker1_token();
+				const token_p = await this.anon.icrc1pv_token();
 				this.token = new Token(token_p, this.wallet);
 			}
 		} catch (cause) {

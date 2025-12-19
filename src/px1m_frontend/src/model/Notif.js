@@ -56,6 +56,10 @@ export default class Notif {
 		this.showPopup({ type: 'success', title, message });
 	}
 
+	infoPopup(title, message) {
+		this.showPopup({ title, message });
+	}
+
 	errorPopup(title, err) {
 		console.error(title, err);
 		const message = err instanceof Error ? err.message : String(err);

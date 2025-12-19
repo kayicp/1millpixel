@@ -153,27 +153,92 @@ export default class Canvas {
 
 	async topup(idx, price, credits) {
 		const token = this.linker.token;
-    this.notif.confirmPopup(`Confirm Topup Credits?`, html`
-			<div class="text-xs text-slate-400">Amount: </div>
-			<span class="text-slate-300 font-mono">${credits} Credits</span><br><br>
-			<div class="text-xs text-slate-400">Price: </div>
-			<span class="text-slate-300 font-mono">${token.clean(price)} ${token.symbol}</span><br><br>
-			<div class="text-xs text-slate-400">AccountLink fee: </div>
-			<span class="text-slate-300 font-mono">${token.clean(token.fee + token.fee)} ${token.symbol}</span><br><br>
-			<div class="text-xs text-slate-400">TOTAL: </div>
-			<span class="text-slate-300 font-mono">${token.clean(price + token.fee + token.fee)} ${token.symbol}</span>
-
-			<hr class="my-3 border-slate-700" />
-			<div class="text-xs text-slate-400">Please set a new connection to your AccountLink by using these values: </div><br>
-      <div class="text-xs text-slate-400">App's principal: </div>
-			<span class="text-slate-300 font-mono">${canisterId}</span><br><br>
-			<div class="text-xs text-slate-400">Your principal: </div>
-			<span class="text-slate-300 font-mono">${this.wallet.principal}</span><br><br>
-			<div class="text-xs text-slate-400">Amount (${token.symbol}): </div>
-			<span class="text-slate-300 font-mono">${token.clean(price + token.fee + token.fee)}</span><br><br>
-			`, [{
-			label: `I have set the connection, now confirm topup`,
-			onClick: async () => {
+		const total = price + token.fee;
+	
+		this.notif.confirmPopup(
+			`Confirm top‑up`,
+			html`
+				<div class="text-xs space-y-4">
+					<!-- Payment details -->
+					<section>
+						<div class="uppercase tracking-wide text-slate-400 mb-1">
+							Payment details
+						</div>
+						<div class="space-y-1">
+							<div class="flex justify-between">
+								<span class="text-slate-400">Credits</span>
+								<span class="text-slate-200 font-mono">${credits}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-slate-400">Price</span>
+								<span class="text-slate-200 font-mono">
+									${token.clean(price)} ${token.symbol}
+								</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-slate-400">AccountLink fee</span>
+								<span class="text-slate-200 font-mono">
+									${token.clean(token.fee)} ${token.symbol}
+								</span>
+							</div>
+							<div class="flex justify-between font-semibold">
+								<span class="text-slate-300">Total to pay</span>
+								<span class="text-slate-100 font-mono">
+									${token.clean(total)} ${token.symbol}
+								</span>
+							</div>
+						</div>
+					</section>
+					<br>
+	
+					<hr class="border-slate-700" />
+					<br>
+	
+					<!-- AccountLink setup instructions -->
+					<section>
+						<div class="uppercase tracking-wide text-slate-400 mb-1">
+							Set up in AccountLink
+						</div>
+						<p class="mb-2 text-slate-400">
+							In AccountLink, create or update the link for <span class="font-semibold">MillionPixels</span>
+							to your vault by using these values:
+						</p>
+	
+						<div class="space-y-2">
+							<div>
+								<div class="text-slate-400">App canister ID (backend principal)</div>
+								<div class="text-slate-200 font-mono break-all">
+									${canisterId}
+								</div>
+							</div>
+							<br>
+							<div>
+								<div class="text-slate-400">Your user ID (principal)</div>
+								<div class="text-slate-200 font-mono break-all">
+									${this.wallet.principal}
+								</div>
+							</div>
+							<br>
+							<div>
+								<div class="text-slate-400">
+									Spending limit (must be at least)
+								</div>
+								<div class="text-slate-200 font-mono">
+									${token.clean(total)} ${token.symbol}
+								</div>
+							</div>
+						</div>
+	
+						<p class="mt-3 text-slate-400">
+							After you finish setting this up in AccountLink, return here and confirm this payment.
+						</p>
+					</section>
+				</div>
+			`,
+			[
+				{
+					label: `Confirm payment via AccountLink`,
+					onClick: async () => {
 				this.busy = true;
 				this.render();
 				try {
@@ -197,9 +262,9 @@ export default class Canvas {
 						} else if ('Locked' in res.Err) {
               msg = 'Please wait. Your AccountLink is busy';
 						} else if ('InsufficientBalance' in res.Err) {
-							msg = `Your AccountLink only have ${token.clean(res.Err.InsufficientBalance.balance)} ${token.symbol}. You need at least ${token.clean(price + token.fee + token.fee)} ${token.symbol}`
+							msg = `Your AccountLink only have ${token.clean(res.Err.InsufficientBalance.balance)} ${token.symbol}. You need at least ${token.clean(total)} ${token.symbol}`
 						} else if ('InsufficientAllowance' in res.Err) {
-							msg = `Your AccountLink only allowed ${token.clean(res.Err.InsufficientAllowance.allowance)}. You need to allow at least ${token.clean(price + token.fee + token.fee)} ${token.symbol}`
+							msg = `Your AccountLink only allowed ${token.clean(res.Err.InsufficientAllowance.allowance)}. You need to allow at least ${token.clean(total)} ${token.symbol}`
 						}
 						this.notif.errorPopup(title, msg);
 					} else {
@@ -216,20 +281,50 @@ export default class Canvas {
 
 	async commit(pixels) {
 		if (pixels.length == 0) {
-			return this.notif.errorPopup('No pixels to save', 'Place a pixel first');
+			return this.notif.errorPopup('Nothing to save', 'Place at least one pixel before saving.');
 		}
+	
 		if (this.credits < pixels.length) {
-			return this.notif.errorPopup('Insufficient Pixel Credit', `You are placing ${pixels.length} pixels but you have ${this.credits} Pixel Credits. Please topup your Pixel Credits.`);
+			return this.notif.errorPopup(
+				'Not enough credits',
+				`You are trying to save ${pixels.length} pixels but you only have ${this.credits} credits. Please buy more credits.`
+			);
 		}
-		this.notif.confirmPopup(`Confirm Save?`, html`
-			<div class="text-xs text-slate-400">You have ...</div>
-			<span class="text-slate-300 font-mono">${this.credits} Pixel Credits.</span><br><br>
-			<div class="text-xs text-slate-400">You are saving</div>
-			<span class="text-slate-300 font-mono">${pixels.length} pixels</span><br>
-			<hr class="my-3 border-slate-700" />
-			<div class="text-xs text-slate-400">After saving, you will have: </div>
-			<span class="text-slate-300 font-mono">${this.credits - BigInt(pixels.length)} Pixel Credits</span>`, [{
-				label: 'Confirm Save',
+	
+		this.notif.confirmPopup(
+			'Confirm save',
+			html`
+				<div class="text-xs space-y-3">
+					<div>
+						<div class="text-slate-400">Current balance</div>
+						<div class="text-slate-300 font-mono">
+							${this.credits} credits
+						</div>
+					</div>
+					<br>
+					<div>
+						<div class="text-slate-400">Pixels to save (credits to spend)</div>
+						<div class="text-slate-300 font-mono">
+							${pixels.length} pixels
+						</div>
+					</div>
+	
+					<hr class="my-3 border-slate-700" />
+	
+					<div>
+						<div class="text-slate-400">Balance after save</div>
+						<div class="text-slate-300 font-mono">
+							${this.credits - BigInt(pixels.length)} credits
+						</div>
+					</div>
+	
+					<p class="pt-1 text-slate-500">
+						Saving will apply these pixels to the shared canvas and permanently spend your credits.
+					</p>
+				</div>
+			`,
+			[{
+				label: 'Confirm save',
 				onClick: async () => {
 					this.busy = true;
 					this.render();
