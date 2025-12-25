@@ -328,10 +328,19 @@ export default class Draw {
   }
 
   clearPlaced() {
-    this.canvasb.placedPixels.clear();
-    this.undoStack = [];
-    this.redoStack = [];
-    this.redraw();
+    while (this.undoStack.length > 0) {
+      const action = this.undoStack.pop();
+      this.redoStack.push(action);
+      const [x, y] = action.key.split(',').map(Number);
+      if (action.prevColor === null) {
+        this.canvasb.placedPixels.delete(action.key);
+        const bufferColor = this.canvasb.buffer[y * this.canvasb.width + x] ?? 0;
+        this.drawPixel(x, y, bufferColor);
+      } else {
+        this.canvasb.placedPixels.set(action.key, action.prevColor);
+        this.drawPixel(x, y, action.prevColor);
+      }
+    }
     this.wallet.render();
   }
 
@@ -368,7 +377,7 @@ export default class Draw {
 
           <div class="flex items-center gap-3">
             <!-- Coordinates -->
-            <span class="text-xs text-slate-500 font-mono w-20 text-right">
+            <span class="text-sm text-slate-500 font-mono w-20 text-right">
               ${this.mouseX !== null ? `${this.mouseX}, ${this.mouseY}` : ''}
             </span>
             

@@ -324,10 +324,10 @@ shared (install) persistent actor class Canister(
     #Ok block_id;
   };
   public shared ({ caller }) func canvas_commit(args : [T.CommitArg]) : async [Result.Type<Nat, T.CommitErr>] {
-    // todo: syncTrim()
+    let now = Time64.nanos();
+    syncTrim(now);
     let res_size = Nat.min(args.size(), env.max_update_batch_size);
     let res = Buffer.Buffer<Result.Type<Nat, T.CommitErr>>(res_size);
-    let now = Time64.nanos();
     label processing for (i in Iter.range(0, res_size - 1)) {
       res.add(commitPixel(caller, args[i], ICRC1L.validatePrincipal(caller), now));
     };
@@ -336,7 +336,8 @@ shared (install) persistent actor class Canister(
   };
 
   public shared ({ caller }) func canvas_topup(arg : T.TopupArg) : async Result.Type<Nat, T.TopupErr> {
-    // todo: syncTrim()
+    let now = Time64.nanos();
+    syncTrim(now);
     if (not env.available) return Error.text("Unavailable");
     let user_a = { owner = caller; subaccount = arg.subaccount };
     if (not ICRC1L.validateAccount(user_a)) return Error.text("Caller account is not valid");
@@ -360,7 +361,6 @@ shared (install) persistent actor class Canister(
       case (?defined) if (defined != topup_credits) return #Err(#BadAmount { expected_amount = topup_credits });
       case _ ();
     };
-    let now = Time64.nanos();
     switch (checkIdempotency(caller, #Topup arg, arg.created_at, now)) {
       case (#Err err) return #Err err;
       case _ ();

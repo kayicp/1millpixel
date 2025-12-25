@@ -69,6 +69,7 @@ export default class Canvas {
 			}
 		}
 		// todo: change copy to sell to different audience/early adopters
+		// todo: fix undo/redo stack when Save, maybe put them in backend too like placedPixel?
 		// if (this.has_init) {
 		try {
 			const PARALLEL = 5;
